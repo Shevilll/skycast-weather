@@ -9,26 +9,38 @@ import { WeatherCardSkeleton, ForecastSkeleton } from './components/Skeleton';
 import { Moon, Sun } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [unit, setUnit] = useState<Unit>(Unit.CELSIUS);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'light';
+  });
+  const [unit, setUnit] = useState<Unit>(() => {
+    const savedUnit = localStorage.getItem('unit');
+    return (savedUnit === Unit.CELSIUS || savedUnit === Unit.FAHRENHEIT) ? (savedUnit as Unit) : Unit.CELSIUS;
+  });
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    const savedTheme = localStorage.getItem('theme');
+    if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setTheme('dark');
     }
   }, []);
 
   useEffect(() => {
+    localStorage.setItem('theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('unit', unit);
+  }, [unit]);
 
   useEffect(() => {
     handleCurrentLocation();
